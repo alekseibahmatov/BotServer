@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.Socket;
 
 
@@ -11,7 +8,7 @@ public class MuleThread extends Thread {
     private String nickname, status, workerNickname;
 
     private BufferedReader dis;
-    public DataOutputStream dos;
+    public BufferedWriter dos;
     private Socket s;
 
     private Server server;
@@ -22,7 +19,7 @@ public class MuleThread extends Thread {
         try {
             this.s = s;
             this.dis = new BufferedReader(new InputStreamReader(s.getInputStream()));
-            this.dos = new DataOutputStream(s.getOutputStream());
+            this.dos = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
             this.nickname = nickname;
             this.status = status;
             this.server = server;
@@ -34,9 +31,9 @@ public class MuleThread extends Thread {
     @Override
     public void run() {
         String request, response;
-        System.out.println("Thread initialized");
+        System.out.println(nickname + " thread initialized");
         try {
-            while (run) {
+            while (s.isConnected()) {
                 if((request = dis.readLine()) != null) {
                     String splittedRequest[] = request.split(";");
 
@@ -51,6 +48,7 @@ public class MuleThread extends Thread {
                     }
                 }
             }
+            close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -66,7 +64,7 @@ public class MuleThread extends Thread {
 
     private void close() {
         run = false;
-        System.out.println("Mule exit");
+        System.out.println(nickname + " thread closed");
         server.removeMule(this);
     }
 

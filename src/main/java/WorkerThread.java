@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 
@@ -12,7 +9,7 @@ public class WorkerThread implements Runnable {
     private String nickname, status;
 
     private BufferedReader dis;
-    private DataOutputStream dos;
+    private BufferedWriter dos;
     private Socket s = null;
 
     private ArrayList<WorkerThread> wTs;
@@ -26,7 +23,7 @@ public class WorkerThread implements Runnable {
         try {
             this.s = s;
             this.dis = new BufferedReader(new InputStreamReader(s.getInputStream()));
-            this.dos = new DataOutputStream(s.getOutputStream());
+            this.dos = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
             this.nickname = nickname;
             this.wTs = workerThreads;
             this.mTs = muleThreads;
@@ -62,16 +59,24 @@ public class WorkerThread implements Runnable {
 
                             if(nicknames.size() != 0) {
                                 System.out.println("Mules available: " + availableMules);
-                                dos.writeUTF(availableMules);
+                                dos.write(availableMules);
+                                dos.newLine();
+                                dos.flush();
                             }
                             else {
                                 System.out.println("No mules available right now");
-                                dos.writeUTF("NMA");
+                                dos.write("NMA");
+                              dos.newLine();
+                              dos.flush();
                             }
                             break;
                         case "ReserveMule":
                             System.out.println(nickname + " is reserving " + splittedRequest[1]);
-                            if(writeToMule(splittedRequest[1], splittedRequest[2], splittedRequest[3])) dos.writeUTF("Received");
+                            if(writeToMule(splittedRequest[1], splittedRequest[2], splittedRequest[3])) {
+                              dos.write("Received");
+                              dos.newLine();
+                              dos.flush();
+                            }
                             break;
                         case "exit":
                            close();
@@ -97,7 +102,9 @@ public class WorkerThread implements Runnable {
         for (MuleThread mT : mTs) {
             if(muleNickname.equals(mT.getNickname())) {
                 String response = String.format("Info;%s;%s;%s", nickname, world, place);
-                mT.dos.writeUTF(response);
+                mT.dos.write(response);
+                mT.dos.newLine();
+                mT.dos.flush();
                 return true;
             }
         }

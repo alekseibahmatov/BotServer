@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -24,7 +21,7 @@ public class Server {
                 try {
                     clientSocket = serverSocket.accept();
                     BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                    DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
+                    BufferedWriter dos = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
 
                     String request = reader.readLine();
 
@@ -38,17 +35,22 @@ public class Server {
 
                             workerThreads.add(t);
 
-                            dos.writeUTF("Connected");
+                            dos.write("Connected");
+                            dos.newLine();
+                            dos.flush();
                         }
 
                         else if (splittedRequested[1].equals("1")) {
-                            MuleThread t = new MuleThread(clientSocket,splittedRequested[2], splittedRequested[3], this);
+                          System.out.println(request);
+                            MuleThread t = new MuleThread(clientSocket, splittedRequested[2], splittedRequested[3], this);
 
                             t.start();
 
                             muleThreads.add(t);
 
-                            dos.writeUTF("Connected");
+                            dos.write("Connected");
+                          dos.newLine();
+                          dos.flush();
                         }
                     }
                 } catch (IOException e) {
